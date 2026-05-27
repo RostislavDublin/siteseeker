@@ -59,7 +59,7 @@ async function main(): Promise<void> {
   engine.setDispatcher(dispatcher);
 
   // Start REST API
-  const api = createApi(appDb);
+  const api = createApi(appDb, { engine });
   const port = config.port ?? 3000;
   serve({ fetch: api.fetch, port }, () => {
     log.info(`REST API listening on http://localhost:${port}`);

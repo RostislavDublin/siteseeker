@@ -32,5 +32,12 @@ export function usersRoutes(appDb: AppDb): Hono {
     return c.json(user);
   });
 
+  app.patch('/:id', async (c) => {
+    const body = await c.req.json<{ email?: string; role?: 'admin' | 'user'; schedulingEnabled?: boolean }>();
+    const updated = appDb.users.update(c.req.param('id'), body);
+    if (!updated) return c.json({ error: 'not found' }, 404);
+    return c.json(updated);
+  });
+
   return app;
 }

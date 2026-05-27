@@ -4,12 +4,20 @@ export function migrateAll(db: Database.Database): void {
   db.exec(`
     -- Users / RBAC
     CREATE TABLE IF NOT EXISTS users (
-      id         TEXT PRIMARY KEY,
-      username   TEXT NOT NULL UNIQUE,
-      email      TEXT,
-      role       TEXT NOT NULL DEFAULT 'user',
-      created_at TEXT NOT NULL
+      id                  TEXT PRIMARY KEY,
+      username            TEXT NOT NULL UNIQUE,
+      email               TEXT,
+      role                TEXT NOT NULL DEFAULT 'user',
+      scheduling_enabled  INTEGER NOT NULL DEFAULT 1,
+      created_at          TEXT NOT NULL
     );
+
+    -- System-level settings (key-value)
+    CREATE TABLE IF NOT EXISTS settings (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+    INSERT OR IGNORE INTO settings (key, value) VALUES ('scheduling_enabled', '1');
 
     -- Watches (owned by users; seeded from watches.yaml on first run)
     CREATE TABLE IF NOT EXISTS watches (

@@ -3,10 +3,12 @@ import { migrateAll } from './schema.js';
 import { UserStore } from './user-store.js';
 import { WatchStore } from './watch-store.js';
 import { RunStore } from './run-store.js';
+import { SettingsStore } from './settings-store.js';
 
 export { UserStore } from './user-store.js';
 export { WatchStore } from './watch-store.js';
 export { RunStore } from './run-store.js';
+export { SettingsStore } from './settings-store.js';
 export type { User } from './user-store.js';
 export type { WatchRun, RunStatus } from './run-store.js';
 
@@ -15,6 +17,7 @@ export interface AppDb {
   users: UserStore;
   watches: WatchStore;
   runs: RunStore;
+  settings: SettingsStore;
 }
 
 export function openDatabase(path: string): AppDb {
@@ -27,5 +30,6 @@ export function openDatabase(path: string): AppDb {
     users: new UserStore(db),
     watches: new WatchStore(db),
     runs: new RunStore(db),
+    settings: new SettingsStore(db),
   };
 }

@@ -20,6 +20,8 @@ Core functionality: monitor recreation.gov campgrounds and notify via Telegram.
 - [x] REST API (Hono) - CRUD users, watches, run history
 - [x] Per-run structured logging (RunLogger -> DB + console)
 - [x] CLI entry point with config.yaml
+- [ ] Scheduling hierarchy (system / user / watch level enable/disable)
+- [ ] On-demand watch execution endpoint (`POST /watches/run`)
 - [ ] Docker image
 - [ ] Integration test with real recreation.gov API
 

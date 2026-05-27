@@ -156,6 +156,46 @@ interface Reservation {
 }
 ```
 
+### User
+
+```typescript
+interface User {
+  id: string;
+  username: string;
+  email?: string;
+  role: 'admin' | 'user';
+  schedulingEnabled: boolean;       // Per-user scheduling toggle (default: true)
+  createdAt: Date;
+}
+```
+
+### SystemSettings
+
+Key-value store for global runtime configuration.
+
+```typescript
+interface SystemSettings {
+  schedulingEnabled: boolean;       // Global scheduling toggle (default: true)
+}
+```
+
+## Scheduling Hierarchy
+
+Watch evaluation on a schedule requires ALL three levels to be enabled:
+
+```
+System (settings.scheduling_enabled)
+  └── User (users.scheduling_enabled)
+       └── Watch (watches.status = 'active')
+```
+
+**Effective eligibility:** a watch is scheduled only if:
+- `settings.scheduling_enabled = true` AND
+- `users.scheduling_enabled = true` (watch owner) AND
+- `watches.status = 'active'`
+
+**On-demand execution** (`POST /watches/run`) bypasses system and user scheduling pauses. It only refuses watches with terminal status (`fulfilled`, `expired`).
+
 ## Entity relationships
 
 ```

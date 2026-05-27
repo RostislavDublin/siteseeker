@@ -143,9 +143,20 @@ export class Engine {
   }
 
   async runCycle(watches: Watch[]): Promise<SiteMatch[]> {
+    if (!this.appDb.settings.isSchedulingEnabled()) {
+      log.info('Scheduling disabled at system level, skipping cycle');
+      return [];
+    }
+
     const allMatches: SiteMatch[] = [];
     for (const watch of watches) {
       if (watch.status !== 'active') continue;
+
+      const userId = this.appDb.watches.getUserId(watch.id);
+      if (userId) {
+        const user = this.appDb.users.getById(userId);
+        if (user && !user.schedulingEnabled) continue;
+      }
       try {
         const matches = await this.evaluateWatch(watch);
         allMatches.push(...matches);
@@ -164,10 +175,11 @@ export class Engine {
 
   start(watches: Watch[], intervalMinutes: number): void {
     log.info(`Starting scheduler: checking every ${intervalMinutes} minutes`);
-    // Run immediately
-    this.runCycle(watches);
-    // Then on interval
-    this.timer = setInterval(() => this.runCycle(watches), intervalMinutes * 60 * 1000);
+    // Schedule periodic checks (no immediate run on startup to avoid hammering providers during dev)
+    this.timer = setInterval(() => {
+      const current = this.appDb.watches.getActive();
+      this.runCycle(current);
+    }, intervalMinutes * 60 * 1000);
   }
 
   stop(): void {

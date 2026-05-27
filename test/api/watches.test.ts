@@ -127,4 +127,20 @@ describe('watches API', () => {
       expect(res.status).toBe(404)
     })
   })
+
+  describe('POST /watches/run', () => {
+    it('returns 503 when engine is not available', async () => {
+      const createRes = await request(ctx.app).post('/watches', validWatch())
+      const watch = await createRes.json()
+      const res = await request(ctx.app).post('/watches/run', { watchIds: [watch.id] })
+      expect(res.status).toBe(503)
+      const body = await res.json()
+      expect(body.error).toBe('engine not available')
+    })
+
+    it('returns 503 for any request without engine (even invalid body)', async () => {
+      const res = await request(ctx.app).post('/watches/run', { watchIds: [] })
+      expect(res.status).toBe(503)
+    })
+  })
 })

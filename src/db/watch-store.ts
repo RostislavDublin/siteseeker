@@ -14,6 +14,16 @@ interface WatchRow {
 export class WatchStore {
   constructor(private db: Database.Database) {}
 
+  getById(id: string): Watch | null {
+    const row = this.db.prepare('SELECT * FROM watches WHERE id = ?').get(id) as WatchRow | undefined
+    return row ? this.rowToWatch(row) : null
+  }
+
+  getUserId(watchId: string): string | null {
+    const row = this.db.prepare('SELECT user_id FROM watches WHERE id = ?').get(watchId) as { user_id: string } | undefined
+    return row?.user_id ?? null
+  }
+
   upsert(watch: Watch, userId: string): void {
     const configJson = JSON.stringify({
       target: watch.target,

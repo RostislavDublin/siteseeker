@@ -95,4 +95,40 @@ describe('users API', () => {
       expect(res.status).toBe(404)
     })
   })
+
+  describe('PATCH /users/:id', () => {
+    it('updates user email', async () => {
+      const createRes = await request(ctx.app).post('/users', { username: 'alice' })
+      const user = await createRes.json()
+      const res = await request(ctx.app).patch(`/users/${user.id}`, { email: 'alice@example.com' })
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.email).toBe('alice@example.com')
+    })
+
+    it('disables user scheduling', async () => {
+      const createRes = await request(ctx.app).post('/users', { username: 'alice' })
+      const user = await createRes.json()
+      expect(user.schedulingEnabled).toBe(true)
+
+      const res = await request(ctx.app).patch(`/users/${user.id}`, { schedulingEnabled: false })
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.schedulingEnabled).toBe(false)
+    })
+
+    it('re-enables user scheduling', async () => {
+      const createRes = await request(ctx.app).post('/users', { username: 'alice' })
+      const user = await createRes.json()
+      await request(ctx.app).patch(`/users/${user.id}`, { schedulingEnabled: false })
+      const res = await request(ctx.app).patch(`/users/${user.id}`, { schedulingEnabled: true })
+      const body = await res.json()
+      expect(body.schedulingEnabled).toBe(true)
+    })
+
+    it('returns 404 for unknown id', async () => {
+      const res = await request(ctx.app).patch('/users/nonexistent', { email: 'x@y.com' })
+      expect(res.status).toBe(404)
+    })
+  })
 })

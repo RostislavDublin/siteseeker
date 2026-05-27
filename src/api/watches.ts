@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
 import { randomUUID } from 'node:crypto';
 import type { AppDb } from '../db/index.js';
+import type { Engine } from '../engine/index.js';
 import type { Watch, WatchTarget, WatchDates, WatchSiteFilters, NotificationTarget } from '../domain/types.js';
 
-export function watchesRoutes(appDb: AppDb): Hono {
+export function watchesRoutes(appDb: AppDb, engine?: Engine): Hono {
   const app = new Hono();
 
   // List watches (optionally filter by user_id query param)
@@ -77,6 +78,40 @@ export function watchesRoutes(appDb: AppDb): Hono {
     const result = appDb.db.prepare('DELETE FROM watches WHERE id = ?').run(c.req.param('id'));
     if (result.changes === 0) return c.json({ error: 'not found' }, 404);
     return c.body(null, 204);
+  });
+
+  // On-demand execution: run specified watches immediately
+  app.post('/run', async (c) => {
+    if (!engine) {
+      return c.json({ error: 'engine not available' }, 503);
+    }
+
+    const body = await c.req.json<{ watchIds: string[] }>();
+    if (!Array.isArray(body.watchIds) || body.watchIds.length === 0) {
+      return c.json({ error: 'watchIds array is required' }, 400);
+    }
+
+    const results: { watchId: string; status: string; matchesFound?: number; error?: string }[] = [];
+
+    for (const watchId of body.watchIds) {
+      const watch = appDb.watches.getById(watchId);
+      if (!watch) {
+        results.push({ watchId, status: 'error', error: 'not found' });
+        continue;
+      }
+      if (watch.status === 'fulfilled' || watch.status === 'expired') {
+        results.push({ watchId, status: 'error', error: `watch is ${watch.status}` });
+        continue;
+      }
+      try {
+        const matches = await engine.evaluateWatch(watch);
+        results.push({ watchId, status: 'ok', matchesFound: matches.length });
+      } catch (err) {
+        results.push({ watchId, status: 'error', error: err instanceof Error ? err.message : String(err) });
+      }
+    }
+
+    return c.json({ results });
   });
 
   return app;

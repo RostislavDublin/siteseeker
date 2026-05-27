@@ -6,6 +6,7 @@ export interface User {
   username: string;
   email?: string;
   role: 'admin' | 'user';
+  schedulingEnabled: boolean;
   createdAt: Date;
 }
 
@@ -14,6 +15,7 @@ interface UserRow {
   username: string;
   email: string | null;
   role: string;
+  scheduling_enabled: number;
   created_at: string;
 }
 
@@ -32,12 +34,25 @@ export class UserStore {
       username: opts.username,
       email: opts.email,
       role: opts.role ?? 'user',
+      schedulingEnabled: true,
       createdAt: new Date(),
     };
     this.db.prepare(`
-      INSERT INTO users (id, username, email, role, created_at)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(user.id, user.username, user.email ?? null, user.role, user.createdAt.toISOString());
+      INSERT INTO users (id, username, email, role, scheduling_enabled, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(user.id, user.username, user.email ?? null, user.role, 1, user.createdAt.toISOString());
+    return user;
+  }
+
+  update(id: string, fields: { email?: string; role?: 'admin' | 'user'; schedulingEnabled?: boolean }): User | null {
+    const user = this.getById(id);
+    if (!user) return null;
+    if (fields.email !== undefined) user.email = fields.email;
+    if (fields.role !== undefined) user.role = fields.role;
+    if (fields.schedulingEnabled !== undefined) user.schedulingEnabled = fields.schedulingEnabled;
+    this.db.prepare(`
+      UPDATE users SET email = ?, role = ?, scheduling_enabled = ? WHERE id = ?
+    `).run(user.email ?? null, user.role, user.schedulingEnabled ? 1 : 0, id);
     return user;
   }
 
@@ -62,6 +77,7 @@ export class UserStore {
       username: row.username,
       email: row.email ?? undefined,
       role: row.role as 'admin' | 'user',
+      schedulingEnabled: row.scheduling_enabled === 1,
       createdAt: new Date(row.created_at),
     };
   }
