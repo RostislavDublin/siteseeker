@@ -27,8 +27,10 @@ SiteSeeker is a campsite availability monitoring system designed around a plugin
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
 │                      Infrastructure                              │
-│   Database (SQLite/Postgres)  |  Task Queue  |  Cache (Redis)   │
+│   Database (SQLite*)  |  Task Queue (future)  |  Cache (future) │
 └─────────────────────────────────────────────────────────────────┘
+
+*Current implementation uses SQLite in WAL mode. PostgreSQL/Redis planned for hosted SaaS model.
 ```
 
 ## Core concepts

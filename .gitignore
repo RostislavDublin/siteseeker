@@ -8,6 +8,8 @@ dist/
 .env.*
 !.env.example
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 coverage/
 .DS_Store

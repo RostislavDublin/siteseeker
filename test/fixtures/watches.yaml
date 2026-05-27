@@ -1,0 +1,133 @@
+watches:
+  # Rocky Mountain NP - July 3-4 (1-2 nights after Denver trailer pickup)
+  - id: rmnp-moraine-park
+    name: "RMNP Moraine Park"
+    facility_id: "232463"
+    dates:
+      earliest: "2026-07-02"
+      latest: "2026-07-06"
+      min_nights: 1
+      max_nights: 2
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50
+
+  - id: rmnp-glacier-basin
+    name: "RMNP Glacier Basin"
+    facility_id: "232462"
+    dates:
+      earliest: "2026-07-02"
+      latest: "2026-07-06"
+      min_nights: 1
+      max_nights: 2
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50
+
+  - id: rmnp-aspenglen
+    name: "RMNP Aspenglen"
+    facility_id: "233187"
+    dates:
+      earliest: "2026-07-02"
+      latest: "2026-07-06"
+      min_nights: 1
+      max_nights: 2
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50
+
+  # Grand Teton NP - July 5-7 (2-3 nights)
+  - id: teton-colter-bay
+    name: "Grand Teton Colter Bay"
+    facility_id: "258830"
+    dates:
+      earliest: "2026-07-04"
+      latest: "2026-07-09"
+      min_nights: 2
+      max_nights: 3
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50
+
+  - id: teton-colter-bay-rv
+    name: "Grand Teton Colter Bay RV Park"
+    facility_id: "258831"
+    dates:
+      earliest: "2026-07-04"
+      latest: "2026-07-09"
+      min_nights: 2
+      max_nights: 3
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 60
+
+  - id: teton-gros-ventre
+    name: "Grand Teton Gros Ventre"
+    facility_id: "247661"
+    dates:
+      earliest: "2026-07-04"
+      latest: "2026-07-09"
+      min_nights: 2
+      max_nights: 3
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50
+
+  - id: teton-signal-mountain
+    name: "Grand Teton Signal Mountain"
+    facility_id: "247663"
+    dates:
+      earliest: "2026-07-04"
+      latest: "2026-07-09"
+      min_nights: 2
+      max_nights: 3
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50
+
+  # Yellowstone NP - July 8-11 (3-4 nights)
+  - id: ynp-lewis-lake
+    name: "Yellowstone Lewis Lake"
+    facility_id: "259309"
+    dates:
+      earliest: "2026-07-07"
+      latest: "2026-07-13"
+      min_nights: 2
+      max_nights: 4
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50
+
+  - id: ynp-indian-creek
+    name: "Yellowstone Indian Creek"
+    facility_id: "259304"
+    dates:
+      earliest: "2026-07-07"
+      latest: "2026-07-13"
+      min_nights: 2
+      max_nights: 4
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50
+
+  - id: ynp-mammoth
+    name: "Yellowstone Mammoth"
+    facility_id: "247571"
+    dates:
+      earliest: "2026-07-07"
+      latest: "2026-07-13"
+      min_nights: 2
+      max_nights: 4
+    site:
+      min_length: 25
+      types: [rv, trailer]
+      max_price: 50

@@ -1,0 +1,20 @@
+# SiteSeeker Watches
+# This file defines what campgrounds to monitor and under what conditions.
+# Copy to watches.yaml and add your trips.
+# Run: npx tsx src/main.ts --config config.yaml --watches watches.yaml
+# Default: watches.yaml is loaded from the same directory as config.yaml.
+
+watches:
+  - id: vegas-rv-spring
+    name: "Vegas Area RV - Spring 2026"
+    facility_id: "232487"  # Red Rock Canyon Campground
+    dates:
+      earliest: "2026-03-15"
+      latest: "2026-04-15"
+      min_nights: 3
+      max_nights: 7
+    site:
+      min_length: 35
+      hookups: [electric]
+      types: [rv]
+      max_price: 60

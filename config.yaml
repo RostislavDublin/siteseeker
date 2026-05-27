@@ -1,0 +1,11 @@
+database: ./siteseeker.db
+check_interval_minutes: 15
+
+sources:
+  - id: recreation_gov
+    api_key: "4d566ee1-aaec-4e1b-931d-1cb71fee6023"
+
+notifications:
+  telegram:
+    bot_token: "FILL_ME"
+    chat_id: "FILL_ME"

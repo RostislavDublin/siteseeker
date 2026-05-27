@@ -1,0 +1,16 @@
+# SiteSeeker Configuration
+# Copy this to config.yaml and fill in real values.
+# Watches (what you want to monitor) live in a separate watches.yaml file.
+# See watches.example.yaml for the watches format.
+
+database: ./siteseeker.db
+check_interval_minutes: 15
+
+sources:
+  - id: recreation_gov
+    api_key: YOUR_RIDB_API_KEY  # get from https://ridb.recreation.gov/
+
+notifications:
+  telegram:
+    bot_token: "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+    chat_id: "-1001234567890"

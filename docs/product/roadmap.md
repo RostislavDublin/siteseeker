@@ -4,20 +4,23 @@
 
 Core functionality: monitor recreation.gov campgrounds and notify via Telegram.
 
-- [ ] Project setup (TypeScript, build, lint, test)
-- [ ] Core engine: scheduler, watch evaluation loop
-- [ ] CampsiteSource interface definition
-- [ ] recreation.gov adapter (API-based)
-  - [ ] RIDB facility sync
-  - [ ] Availability check via campground availability API
-  - [ ] Booking URL generation
-- [ ] Facility Registry (in-memory + SQLite persistence)
-- [ ] Watch system (YAML config, SQLite state)
-- [ ] Match deduplication (don't re-notify for same slot)
-- [ ] Telegram notification channel
-- [ ] CLI entry point (`npx siteseeker --config config.yaml`)
+- [x] Project setup (TypeScript, ESM, build, tsx watch)
+- [x] Core engine: scheduler, watch evaluation loop
+- [x] CampsiteSource interface definition
+- [x] recreation.gov adapter (API-based)
+  - [x] Availability check via campground availability API
+  - [x] Booking URL generation
+  - [ ] RIDB facility sync (bulk import)
+- [x] Facility Registry (SQLite persistence)
+- [x] Watch system (SQLite state, REST API management)
+- [x] Match deduplication (MatchStore - don't re-notify for same slot)
+- [x] Telegram notification channel
+- [x] Multi-channel notification dispatcher with structured logging
+- [x] SQLite database layer (users, watches, runs, logs - WAL mode)
+- [x] REST API (Hono) - CRUD users, watches, run history
+- [x] Per-run structured logging (RunLogger -> DB + console)
+- [x] CLI entry point with config.yaml
 - [ ] Docker image
-- [ ] README with setup instructions
 - [ ] Integration test with real recreation.gov API
 
 ## v0.2.0 - Xanterra + Multi-source
@@ -27,15 +30,14 @@ Core functionality: monitor recreation.gov campgrounds and notify via Telegram.
 - [ ] Adapter rate limiting enforcement in engine
 - [ ] Multiple watches in parallel
 - [ ] Email notification channel (Resend)
-- [ ] Improved logging and error reporting
+- [ ] API authentication (API key or JWT)
 
-## v0.3.0 - REST API + Geo-search
+## v0.3.0 - Geo-search
 
-- [ ] Hono REST API (CRUD watches, trigger manual search)
 - [ ] Facility Registry geo-index (bbox filtering)
 - [ ] Geo-search endpoint (`POST /api/search` with GeoJSON polygon)
 - [ ] RIDB bulk facility import with coordinates
-- [ ] API authentication (API key)
+- [ ] Mapbox GL JS frontend for geo-search
 
 ## v0.4.0 - State Park Adapters
 
@@ -46,7 +48,6 @@ Core functionality: monitor recreation.gov campgrounds and notify via Telegram.
 
 ## v0.5.0 - Web UI + Docker Compose
 
-- [ ] Mapbox GL JS frontend for geo-search
 - [ ] Watch management UI (create, pause, delete)
 - [ ] Match history view
 - [ ] Docker Compose with optional PostgreSQL
