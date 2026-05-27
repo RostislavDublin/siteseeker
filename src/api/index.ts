@@ -1,11 +1,13 @@
 import { Hono } from 'hono';
 import { logger as honoLogger } from 'hono/logger';
+import { swaggerUI } from '@hono/swagger-ui';
 import type { AppDb } from '../db/index.js';
 import type { Engine } from '../engine/index.js';
 import { usersRoutes } from './users.js';
 import { watchesRoutes } from './watches.js';
 import { runsRoutes } from './runs.js';
 import { settingsRoutes } from './settings.js';
+import { spec } from './openapi-spec.js';
 
 export interface ApiOptions {
   silent?: boolean;
@@ -21,6 +23,10 @@ export function createApi(appDb: AppDb, opts?: ApiOptions): Hono {
   api.route('/watches', watchesRoutes(appDb, opts?.engine));
   api.route('/runs', runsRoutes(appDb));
   api.route('/settings', settingsRoutes(appDb));
+
+  // OpenAPI spec + Swagger UI
+  api.get('/doc', (c) => c.json(spec));
+  api.get('/ui', swaggerUI({ url: '/doc' }));
 
   // Health check
   api.get('/health', (c) => c.json({ status: 'ok', watches: appDb.watches.count() }));
