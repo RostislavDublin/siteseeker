@@ -1,0 +1,25 @@
+{
+  "name": "siteseeker",
+  "version": "0.1.0",
+  "description": "Campsite availability monitor with pluggable sources, geo-search, and smart notifications",
+  "author": "Rostislav Dublin",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "lint": "eslint src/",
+    "test": "vitest"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "tsx": "^4.0.0",
+    "vitest": "^2.0.0",
+    "@types/node": "^22.0.0"
+  }
+}
