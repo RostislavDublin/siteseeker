@@ -13,3 +13,6 @@ dist/
 *.sqlite
 coverage/
 .DS_Store
+
+# Override global gitignore - this file travels with the repo
+!.github/copilot-instructions.md
