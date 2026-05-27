@@ -5,10 +5,14 @@ import { usersRoutes } from './users.js';
 import { watchesRoutes } from './watches.js';
 import { runsRoutes } from './runs.js';
 
-export function createApi(appDb: AppDb): Hono {
+export interface ApiOptions {
+  silent?: boolean;
+}
+
+export function createApi(appDb: AppDb, opts?: ApiOptions): Hono {
   const api = new Hono();
 
-  api.use('*', honoLogger());
+  if (!opts?.silent) api.use('*', honoLogger());
 
   api.route('/users', usersRoutes(appDb));
   api.route('/watches', watchesRoutes(appDb));
