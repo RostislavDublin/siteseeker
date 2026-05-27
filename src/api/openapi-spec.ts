@@ -87,11 +87,11 @@ export const spec: OpenAPIV3 = {
         },
       },
     },
-    '/watches': {
+    '/users/{userId}/watches': {
       get: {
         tags: ['Watches'],
-        summary: 'List watches',
-        parameters: [{ name: 'user_id', in: 'query', required: false, schema: { type: 'string' }, description: 'Filter by user' }],
+        summary: 'List watches for a user',
+        parameters: [{ name: 'userId', in: 'path', required: true, schema: { type: 'string' } }],
         responses: {
           '200': { description: 'Array of watches', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Watch' } } } } },
         },
@@ -99,6 +99,7 @@ export const spec: OpenAPIV3 = {
       post: {
         tags: ['Watches'],
         summary: 'Create a watch',
+        parameters: [{ name: 'userId', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/WatchCreate' } } } },
         responses: {
           '201': { description: 'Created watch', content: { 'application/json': { schema: { $ref: '#/components/schemas/Watch' } } } },
@@ -107,41 +108,51 @@ export const spec: OpenAPIV3 = {
         },
       },
     },
-    '/watches/{id}': {
+    '/users/{userId}/watches/{id}': {
       get: {
         tags: ['Watches'],
         summary: 'Get watch by ID',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        parameters: [
+          { name: 'userId', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+        ],
         responses: {
           '200': { description: 'Watch', content: { 'application/json': { schema: { $ref: '#/components/schemas/Watch' } } } },
-          '404': { description: 'Not found' },
+          '404': { description: 'Not found or not owned by user' },
         },
       },
       patch: {
         tags: ['Watches'],
         summary: 'Update watch (status, name)',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        parameters: [
+          { name: 'userId', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+        ],
         requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/WatchPatch' } } } },
         responses: {
           '200': { description: 'Updated watch', content: { 'application/json': { schema: { $ref: '#/components/schemas/Watch' } } } },
-          '404': { description: 'Not found' },
+          '404': { description: 'Not found or not owned by user' },
         },
       },
       delete: {
         tags: ['Watches'],
         summary: 'Delete a watch',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        parameters: [
+          { name: 'userId', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+        ],
         responses: {
           '204': { description: 'Deleted' },
-          '404': { description: 'Not found' },
+          '404': { description: 'Not found or not owned by user' },
         },
       },
     },
-    '/watches/run': {
+    '/users/{userId}/watches/run': {
       post: {
         tags: ['Watches'],
         summary: 'Trigger on-demand watch evaluation',
-        description: 'Immediately evaluates specified watches. Bypasses system/user scheduling pauses. Refuses fulfilled/expired watches.',
+        description: 'Immediately evaluates specified watches owned by this user. Bypasses system/user scheduling pauses. Refuses fulfilled/expired watches.',
+        parameters: [{ name: 'userId', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: {
           required: true,
           content: { 'application/json': { schema: { $ref: '#/components/schemas/WatchRunRequest' } } },
@@ -153,22 +164,29 @@ export const spec: OpenAPIV3 = {
         },
       },
     },
-    '/runs': {
+    '/users/{userId}/watches/{watchId}/runs': {
       get: {
         tags: ['Runs'],
         summary: 'List runs for a watch',
-        parameters: [{ name: 'watch_id', in: 'query', required: true, schema: { type: 'string' } }],
+        parameters: [
+          { name: 'userId', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'watchId', in: 'path', required: true, schema: { type: 'string' } },
+        ],
         responses: {
           '200': { description: 'Array of runs', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/WatchRun' } } } } },
-          '400': { description: 'watch_id is required' },
+          '404': { description: 'Watch not found or not owned by user' },
         },
       },
     },
-    '/runs/{id}/logs': {
+    '/users/{userId}/watches/{watchId}/runs/{runId}/logs': {
       get: {
         tags: ['Runs'],
         summary: 'Get logs for a run',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        parameters: [
+          { name: 'userId', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'watchId', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'runId', in: 'path', required: true, schema: { type: 'string' } },
+        ],
         responses: {
           '200': { description: 'Array of log entries', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/RunLog' } } } } },
         },
@@ -233,9 +251,8 @@ export const spec: OpenAPIV3 = {
       },
       WatchCreate: {
         type: 'object',
-        required: ['user_id', 'name', 'target', 'dates'],
+        required: ['name', 'target', 'dates'],
         properties: {
-          user_id: { type: 'string' },
           name: { type: 'string' },
           target: { type: 'object', description: 'WatchTarget (facility or geo)' },
           dates: { type: 'object', description: 'WatchDates (earliest, latest, minConsecutiveNights)' },

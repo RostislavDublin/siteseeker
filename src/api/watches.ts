@@ -7,17 +7,20 @@ import type { Watch, WatchTarget, WatchDates, WatchSiteFilters, NotificationTarg
 export function watchesRoutes(appDb: AppDb, engine?: Engine): Hono {
   const app = new Hono();
 
-  // List watches (optionally filter by user_id query param)
+  // List watches for user
   app.get('/', (c) => {
-    const userId = c.req.query('user_id');
-    const watches = appDb.watches.getAll(userId || undefined);
+    const userId = c.req.param('userId')!
+    const watches = appDb.watches.getAll(userId);
     return c.json(watches);
   });
 
-  // Create a watch
+  // Create a watch for user
   app.post('/', async (c) => {
+    const userId = c.req.param('userId')!
+    const user = appDb.users.getById(userId);
+    if (!user) return c.json({ error: 'user not found' }, 404);
+
     const body = await c.req.json<{
-      user_id: string;
       name: string;
       target: WatchTarget;
       dates: WatchDates;
@@ -25,13 +28,8 @@ export function watchesRoutes(appDb: AppDb, engine?: Engine): Hono {
       notifications?: NotificationTarget[];
     }>();
 
-    if (!body.user_id || !body.name || !body.target || !body.dates) {
-      return c.json({ error: 'user_id, name, target, and dates are required' }, 400);
-    }
-
-    const user = appDb.users.getById(body.user_id);
-    if (!user) {
-      return c.json({ error: `user '${body.user_id}' not found` }, 404);
+    if (!body.name || !body.target || !body.dates) {
+      return c.json({ error: 'name, target, and dates are required' }, 400);
     }
 
     const watch: Watch = {
@@ -45,39 +43,8 @@ export function watchesRoutes(appDb: AppDb, engine?: Engine): Hono {
       notifications: body.notifications ?? [],
     };
 
-    appDb.watches.upsert(watch, body.user_id);
+    appDb.watches.upsert(watch, userId);
     return c.json(watch, 201);
-  });
-
-  // Get single watch
-  app.get('/:id', (c) => {
-    const all = appDb.watches.getAll();
-    const watch = all.find(w => w.id === c.req.param('id'));
-    if (!watch) return c.json({ error: 'not found' }, 404);
-    return c.json(watch);
-  });
-
-  // Update watch status (pause/resume/expire)
-  app.patch('/:id', async (c) => {
-    const body = await c.req.json<{ status?: string; name?: string }>();
-    const all = appDb.watches.getAll();
-    const watch = all.find(w => w.id === c.req.param('id'));
-    if (!watch) return c.json({ error: 'not found' }, 404);
-
-    if (body.status) watch.status = body.status as Watch['status'];
-    if (body.name) watch.name = body.name;
-
-    // Re-upsert with updated fields (user_id is in DB, use a placeholder lookup)
-    const row = appDb.db.prepare('SELECT user_id FROM watches WHERE id = ?').get(c.req.param('id')) as { user_id: string } | undefined;
-    if (row) appDb.watches.upsert(watch, row.user_id);
-    return c.json(watch);
-  });
-
-  // Delete watch
-  app.delete('/:id', (c) => {
-    const result = appDb.db.prepare('DELETE FROM watches WHERE id = ?').run(c.req.param('id'));
-    if (result.changes === 0) return c.json({ error: 'not found' }, 404);
-    return c.body(null, 204);
   });
 
   // On-demand execution: run specified watches immediately
@@ -91,11 +58,18 @@ export function watchesRoutes(appDb: AppDb, engine?: Engine): Hono {
       return c.json({ error: 'watchIds array is required' }, 400);
     }
 
+    const userId = c.req.param('userId')!
     const results: { watchId: string; status: string; matchesFound?: number; error?: string }[] = [];
 
     for (const watchId of body.watchIds) {
       const watch = appDb.watches.getById(watchId);
       if (!watch) {
+        results.push({ watchId, status: 'error', error: 'not found' });
+        continue;
+      }
+      // Verify watch belongs to this user
+      const ownerUserId = appDb.watches.getUserId(watchId);
+      if (ownerUserId !== userId) {
         results.push({ watchId, status: 'error', error: 'not found' });
         continue;
       }
@@ -112,6 +86,64 @@ export function watchesRoutes(appDb: AppDb, engine?: Engine): Hono {
     }
 
     return c.json({ results });
+  });
+
+  // Get single watch
+  app.get('/:id', (c) => {
+    const userId = c.req.param('userId')!
+    const watch = appDb.watches.getById(c.req.param('id'));
+    if (!watch) return c.json({ error: 'not found' }, 404);
+    const ownerUserId = appDb.watches.getUserId(c.req.param('id'));
+    if (ownerUserId !== userId) return c.json({ error: 'not found' }, 404);
+    return c.json(watch);
+  });
+
+  // Update watch status (pause/resume/expire)
+  app.patch('/:id', async (c) => {
+    const userId = c.req.param('userId')!
+    const watchId = c.req.param('id');
+    const watch = appDb.watches.getById(watchId);
+    if (!watch) return c.json({ error: 'not found' }, 404);
+    const ownerUserId = appDb.watches.getUserId(watchId);
+    if (ownerUserId !== userId) return c.json({ error: 'not found' }, 404);
+
+    const body = await c.req.json<{ status?: string; name?: string }>();
+    if (body.status) watch.status = body.status as Watch['status'];
+    if (body.name) watch.name = body.name;
+
+    appDb.watches.upsert(watch, userId);
+    return c.json(watch);
+  });
+
+  // Delete watch
+  app.delete('/:id', (c) => {
+    const userId = c.req.param('userId')!
+    const watchId = c.req.param('id');
+    const ownerUserId = appDb.watches.getUserId(watchId);
+    if (!ownerUserId || ownerUserId !== userId) return c.json({ error: 'not found' }, 404);
+    const result = appDb.db.prepare('DELETE FROM watches WHERE id = ?').run(watchId);
+    if (result.changes === 0) return c.json({ error: 'not found' }, 404);
+    return c.body(null, 204);
+  });
+
+  // Runs for a specific watch
+  app.get('/:watchId/runs', (c) => {
+    const userId = c.req.param('userId')!
+    const watchId = c.req.param('watchId');
+    const ownerUserId = appDb.watches.getUserId(watchId);
+    if (!ownerUserId || ownerUserId !== userId) return c.json({ error: 'not found' }, 404);
+    const runs = appDb.runs.getRunsForWatch(watchId);
+    return c.json(runs);
+  });
+
+  // Logs for a specific run
+  app.get('/:watchId/runs/:runId/logs', (c) => {
+    const userId = c.req.param('userId')!
+    const watchId = c.req.param('watchId');
+    const ownerUserId = appDb.watches.getUserId(watchId);
+    if (!ownerUserId || ownerUserId !== userId) return c.json({ error: 'not found' }, 404);
+    const logs = appDb.runs.getLogsForRun(c.req.param('runId'));
+    return c.json(logs);
   });
 
   return app;

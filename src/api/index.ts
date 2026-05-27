@@ -5,7 +5,6 @@ import type { AppDb } from '../db/index.js';
 import type { Engine } from '../engine/index.js';
 import { usersRoutes } from './users.js';
 import { watchesRoutes } from './watches.js';
-import { runsRoutes } from './runs.js';
 import { settingsRoutes } from './settings.js';
 import { spec } from './openapi-spec.js';
 
@@ -20,8 +19,7 @@ export function createApi(appDb: AppDb, opts?: ApiOptions): Hono {
   if (!opts?.silent) api.use('*', honoLogger());
 
   api.route('/users', usersRoutes(appDb));
-  api.route('/watches', watchesRoutes(appDb, opts?.engine));
-  api.route('/runs', runsRoutes(appDb));
+  api.route('/users/:userId/watches', watchesRoutes(appDb, opts?.engine));
   api.route('/settings', settingsRoutes(appDb));
 
   // OpenAPI spec + Swagger UI
